@@ -1,0 +1,10 @@
+[package]
+name = "stellar_scout_contract"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Add `soroban-sdk` here when ready (version pinned to project requirements)
