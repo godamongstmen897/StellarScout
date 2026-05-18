@@ -1,0 +1,7 @@
+# Clippy configuration
+# Maximum cognitive complexity before clippy warns
+cognitive-complexity-threshold = 50
+
+# Forbid unsafe code
+too-many-arguments-threshold = 8
+type-complexity-threshold = 500

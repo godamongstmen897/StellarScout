@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Pre-commit hook: Run tests and formatting checks
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Run formatting check
+echo "  📝 Checking code formatting..."
+cargo fmt -- --check
+
+# Run clippy
+echo "  🔎 Running Clippy..."
+cargo clippy --all-targets --all-features -- -D warnings
+
+# Run tests
+echo "  ✅ Running tests..."
+cargo test --all
+
+echo "✨ All checks passed!"
