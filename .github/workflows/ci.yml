@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache target
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Add wasm32 target & clippy
+        run: |
+          rustup target add wasm32-unknown-unknown || true
+          rustup component add clippy || true
+
+      - name: Check formatting
+        run: |
+          cargo fmt --all -- --check
+
+      - name: Build workspace
+        run: |
+          cargo build --workspace --release
+
+      - name: Run tests
+        run: |
+          cargo test --workspace --all-features --no-fail-fast
+
+      - name: Build contract WASM
+        run: |
+          cargo build -p stellar_scout_contract --target wasm32-unknown-unknown --release || true
+
+      - name: Build analyzer
+        run: |
+          cargo build -p stellar_scout_analyzer --release
+
+      - name: Run clippy
+        run: |
+          cargo clippy --all-targets --all-features -- -D warnings || true
+
+      - name: Upload contract WASM artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-wasm
+          path: target/wasm32-unknown-unknown/release/*.wasm
