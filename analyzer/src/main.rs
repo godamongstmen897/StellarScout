@@ -1,24 +1,32 @@
 use clap::Parser;
 use std::path::PathBuf;
-use wasmparser::{Parser as WpParser, Payload};
+use stellar_scout_analyzer::{analyze_file, report::ReportFormat};
 
 #[derive(Parser)]
 struct Args {
     /// Path to the compiled WASM file to analyze
     wasm: PathBuf,
+
+    /// Output format: json or human
+    #[arg(short, long, default_value = "human")]
+    format: String,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    let data = std::fs::read(&args.wasm)?;
-    let mut parser = WpParser::new(0);
-    for payload in parser.parse_all(&data) {
-        match payload? {
-            Payload::Version { .. } => println!("WASM version section found"),
-            Payload::CodeSectionEntry(_) => println!("Found code section entry"),
-            _ => {}
+    
+    let report_format = match args.format.as_str() {
+        "json" => ReportFormat::Json,
+        "human" => ReportFormat::Human,
+        _ => {
+            eprintln!("Invalid format: {}. Use 'json' or 'human'.", args.format);
+            std::process::exit(1);
         }
-    }
-    println!("Analysis complete: (placeholder) no issues found.");
+    };
+
+    let report = analyze_file(&args.wasm)?;
+    let output = report.format(report_format)?;
+    println!("{}", output);
+
     Ok(())
 }
