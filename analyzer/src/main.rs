@@ -14,7 +14,7 @@ struct Args {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    
+
     let report_format = match args.format.as_str() {
         "json" => ReportFormat::Json,
         "human" => ReportFormat::Human,

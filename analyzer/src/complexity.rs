@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use wasmparser::{Payload, Operator};
+use wasmparser::{Operator, Payload};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComplexityAnalysis {
@@ -25,7 +25,7 @@ impl ComplexityAnalysis {
             if let Payload::CodeSectionEntry(body) = payload {
                 let reader = body.get_operators_reader()?;
                 let (cyclomatic, nesting) = analyze_function_body(reader)?;
-                
+
                 if cyclomatic > 5 || nesting > 5 {
                     complexities.push(FunctionComplexity {
                         function_index,
@@ -38,13 +38,19 @@ impl ComplexityAnalysis {
         }
 
         let avg_complexity = if !complexities.is_empty() {
-            complexities.iter().map(|f| f.cyclomatic_complexity).sum::<usize>() as f64
+            complexities
+                .iter()
+                .map(|f| f.cyclomatic_complexity)
+                .sum::<usize>() as f64
                 / complexities.len() as f64
         } else {
             0.0
         };
 
-        let high_complexity = complexities.into_iter().filter(|f| f.cyclomatic_complexity > 10).collect();
+        let high_complexity = complexities
+            .into_iter()
+            .filter(|f| f.cyclomatic_complexity > 10)
+            .collect();
 
         Ok(ComplexityAnalysis {
             functions_analyzed: function_index,
@@ -54,11 +60,9 @@ impl ComplexityAnalysis {
     }
 }
 
-fn analyze_function_body(
-    reader: wasmparser::OperatorsReader,
-) -> Result<(usize, usize)> {
+fn analyze_function_body(reader: wasmparser::OperatorsReader) -> Result<(usize, usize)> {
     let mut cyclomatic_complexity = 1;
-    let mut current_nesting = 0;
+    let mut current_nesting: usize = 0;
     let mut max_nesting = 0;
 
     for op in reader {
@@ -74,9 +78,7 @@ fn analyze_function_body(
                 max_nesting = max_nesting.max(current_nesting);
             }
             Operator::End => {
-                if current_nesting > 0 {
-                    current_nesting -= 1;
-                }
+                current_nesting = current_nesting.saturating_sub(1);
             }
             _ => {}
         }

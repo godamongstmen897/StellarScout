@@ -1,6 +1,6 @@
 pub mod analysis;
-pub mod metrics;
 pub mod complexity;
+pub mod metrics;
 pub mod performance;
 pub mod report;
 

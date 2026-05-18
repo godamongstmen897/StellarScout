@@ -1,9 +1,9 @@
-use anyhow::Result;
-use wasmparser::Parser as WpParser;
-use crate::metrics::ModuleMetrics;
 use crate::complexity::ComplexityAnalysis;
+use crate::metrics::ModuleMetrics;
 use crate::performance::PerformanceAnalysis;
 use crate::report::Report;
+use anyhow::Result;
+use wasmparser::Parser as WpParser;
 
 pub struct WasmAnalyzer {
     data: Vec<u8>,

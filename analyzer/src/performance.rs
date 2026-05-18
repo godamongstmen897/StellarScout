@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use wasmparser::{Payload, Operator};
+use wasmparser::{Operator, Payload};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PerformanceAnalysis {
@@ -58,8 +58,8 @@ impl PerformanceAnalysis {
             let estimated_gas = match *op_name {
                 "memory.grow" => 3000 * count,
                 "table.grow" => 3000 * count,
-                "memory.copy" => 1 * count,
-                "memory.fill" => 1 * count,
+                "memory.copy" => *count,
+                "memory.fill" => *count,
                 _ => 100 * count,
             };
             ops.push(ExpensiveOp {
@@ -69,7 +69,7 @@ impl PerformanceAnalysis {
             });
         }
 
-        ops.sort_by(|a, b| b.estimated_gas_cost.cmp(&a.estimated_gas_cost));
+        ops.sort_by_key(|o| std::cmp::Reverse(o.estimated_gas_cost));
 
         let total_gas_risk: usize = ops.iter().map(|o| o.estimated_gas_cost).sum();
         let gas_risk_level = if total_gas_risk > 50000 {
