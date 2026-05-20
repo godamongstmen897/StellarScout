@@ -10,7 +10,7 @@ This repository contains:
   - **Performance Analysis**: Detects expensive operations and gas cost implications
   - **Reporting**: JSON and human-readable output formats
   
-- `contract/` — Soroban registry contract skeleton to store security attestations.
+- `contract/` — Soroban registry contract skeleton to store security attestations. *(Currently in planning phase)*
 
 ## Quick start
 

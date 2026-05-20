@@ -86,3 +86,59 @@ fn analyze_function_body(reader: wasmparser::OperatorsReader) -> Result<(usize, 
 
     Ok((cyclomatic_complexity, max_nesting))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_complexity_analysis_creation() {
+        let analysis = ComplexityAnalysis {
+            functions_analyzed: 10,
+            high_complexity_functions: vec![],
+            average_complexity: 3.5,
+        };
+
+        assert_eq!(analysis.functions_analyzed, 10);
+        assert_eq!(analysis.high_complexity_functions.len(), 0);
+        assert_eq!(analysis.average_complexity, 3.5);
+    }
+
+    #[test]
+    fn test_function_complexity_creation() {
+        let func = FunctionComplexity {
+            function_index: 0,
+            cyclomatic_complexity: 8,
+            max_nesting_depth: 4,
+        };
+
+        assert_eq!(func.function_index, 0);
+        assert_eq!(func.cyclomatic_complexity, 8);
+        assert_eq!(func.max_nesting_depth, 4);
+    }
+
+    #[test]
+    fn test_complexity_serialization() {
+        let analysis = ComplexityAnalysis {
+            functions_analyzed: 5,
+            high_complexity_functions: vec![FunctionComplexity {
+                function_index: 0,
+                cyclomatic_complexity: 12,
+                max_nesting_depth: 3,
+            }],
+            average_complexity: 7.2,
+        };
+
+        let json = serde_json::to_string(&analysis).expect("serialization should succeed");
+        assert!(json.contains("\"functions_analyzed\":5"));
+        assert!(json.contains("\"cyclomatic_complexity\":12"));
+
+        let deserialized: ComplexityAnalysis =
+            serde_json::from_str(&json).expect("deserialization should succeed");
+        assert_eq!(deserialized.functions_analyzed, analysis.functions_analyzed);
+        assert_eq!(
+            deserialized.high_complexity_functions.len(),
+            analysis.high_complexity_functions.len()
+        );
+    }
+}

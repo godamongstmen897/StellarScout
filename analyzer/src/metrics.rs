@@ -77,3 +77,53 @@ impl ModuleMetrics {
         Ok(metrics)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_metrics_initialization() {
+        let metrics = ModuleMetrics {
+            total_functions: 5,
+            imported_functions: 2,
+            exported_functions: 1,
+            code_section_size: 1024,
+            total_module_size: 2048,
+            imports_count: 3,
+            exports_count: 1,
+            memory_pages: Some(1),
+            table_count: 0,
+        };
+
+        assert_eq!(metrics.total_functions, 5);
+        assert_eq!(metrics.imported_functions, 2);
+        assert_eq!(metrics.exported_functions, 1);
+        assert_eq!(metrics.code_section_size, 1024);
+        assert_eq!(metrics.memory_pages, Some(1));
+    }
+
+    #[test]
+    fn test_metrics_serialization() {
+        let metrics = ModuleMetrics {
+            total_functions: 3,
+            imported_functions: 1,
+            exported_functions: 2,
+            code_section_size: 512,
+            total_module_size: 1024,
+            imports_count: 1,
+            exports_count: 2,
+            memory_pages: Some(2),
+            table_count: 1,
+        };
+
+        let json = serde_json::to_string(&metrics).expect("serialization should succeed");
+        assert!(json.contains("\"total_functions\":3"));
+        assert!(json.contains("\"memory_pages\":2"));
+
+        let deserialized: ModuleMetrics =
+            serde_json::from_str(&json).expect("deserialization should succeed");
+        assert_eq!(deserialized.total_functions, metrics.total_functions);
+        assert_eq!(deserialized.memory_pages, metrics.memory_pages);
+    }
+}

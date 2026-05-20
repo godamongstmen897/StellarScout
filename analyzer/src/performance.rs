@@ -88,3 +88,70 @@ impl PerformanceAnalysis {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_performance_analysis_creation() {
+        let analysis = PerformanceAnalysis {
+            expensive_operations: vec![],
+            memory_operations_count: 5,
+            call_count: 10,
+            gas_risk_level: "LOW".to_string(),
+        };
+
+        assert_eq!(analysis.memory_operations_count, 5);
+        assert_eq!(analysis.call_count, 10);
+        assert_eq!(analysis.gas_risk_level, "LOW");
+    }
+
+    #[test]
+    fn test_expensive_op_creation() {
+        let op = ExpensiveOp {
+            operation: "memory.grow".to_string(),
+            count: 5,
+            estimated_gas_cost: 15000,
+        };
+
+        assert_eq!(op.operation, "memory.grow");
+        assert_eq!(op.count, 5);
+        assert_eq!(op.estimated_gas_cost, 15000);
+    }
+
+    #[test]
+    fn test_gas_risk_level_high() {
+        let analysis = PerformanceAnalysis {
+            expensive_operations: vec![ExpensiveOp {
+                operation: "memory.grow".to_string(),
+                count: 20,
+                estimated_gas_cost: 60000,
+            }],
+            memory_operations_count: 20,
+            call_count: 5,
+            gas_risk_level: "HIGH".to_string(),
+        };
+
+        assert_eq!(analysis.gas_risk_level, "HIGH");
+        assert!(analysis.expensive_operations[0].estimated_gas_cost > 50000);
+    }
+
+    #[test]
+    fn test_expensive_op_serialization() {
+        let op = ExpensiveOp {
+            operation: "table.grow".to_string(),
+            count: 3,
+            estimated_gas_cost: 9000,
+        };
+
+        let json = serde_json::to_string(&op).expect("serialization should succeed");
+        assert!(json.contains("\"operation\":\"table.grow\""));
+        assert!(json.contains("\"count\":3"));
+
+        let deserialized: ExpensiveOp =
+            serde_json::from_str(&json).expect("deserialization should succeed");
+        assert_eq!(deserialized.operation, op.operation);
+        assert_eq!(deserialized.count, op.count);
+    }
+}
